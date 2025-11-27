@@ -25,7 +25,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME} ."
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
@@ -34,18 +34,18 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-login',
                  usernameVariable: 'DOCKER_USER',
                  passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                    docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-                    docker push ${IMAGE_NAME}
-                    """
+                    sh '''
+                    docker login -u $DOCKER_USER -p $DOCKER_PASS
+                    docker push $IMAGE_NAME
+                    '''
                 }
             }
         }
 
-        stage('Deploy to EKS') {
+        stage('Deploy to Kubernetes') {
             steps {
-                sh "kubectl apply -f maven-web-app-deploy.yml"
-                sh "kubectl rollout status deployment/maven-web-app"
+                sh 'kubectl apply -f maven-web-app-deploy.yml'
+                sh 'kubectl rollout status deployment/maven-web-app'
             }
         }
     }
