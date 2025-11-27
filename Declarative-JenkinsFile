@@ -1,22 +1,51 @@
 pipeline {
     agent any
     
-    tools{
-        maven "Maven-3.9.9"
+    tools {
+        maven 'Maven-3.9.9'  // ✅ Matches your Global Tool name exactly
     }
-
+    
     stages {
         stage('Clone') {
             steps {
-                git 'https://github.com/rakesh94452/maven-web-app.git'
+                git branch: 'main', url: 'https://github.com/rakesh94452/maven-web-app.git'
             }
         }
-         stage('Build') {
+        stage('Build') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn clean package -DskipTests'  // ✅ Faster builds
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'mvn test'  // ✅ Add tests
+            }
+        }
+        stage('Docker Build') {
+            steps {
+                script {
+                    def image = docker.build("rakesh/mavenwebapp:${BUILD_NUMBER}")
+                    docker.image("rakesh/mavenwebapp:${BUILD_NUMBER}").push()
+                }
+            }
+        }
+        stage('Deploy to K8s') {
+            steps {
+                sh 'kubectl apply -f maven-web-app-deploy.yml'
+                sh 'kubectl get svc maven-web-app-service'
             }
         }
     }
+    
+    post {
+        always {
+            sh 'docker system prune -f'
+        }
+        success {
+            echo '🎉 Deployment successful!'
+        }
+        failure {
+            echo '❌ Build failed!'
+        }
+    }
 }
-
-
