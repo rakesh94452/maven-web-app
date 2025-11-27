@@ -11,6 +11,7 @@ pipeline {
     }
     
     stages {
+
         stage('Clone Repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/rakesh94452/maven-web-app.git'
@@ -32,7 +33,7 @@ pipeline {
             }
         }
         
-        stage('K8s Deployment') {
+        stage('Kubernetes Deployment') {
             steps {
                 sh 'kubectl apply -f maven-web-app-deploy.yml'
                 sh 'kubectl get pods'
