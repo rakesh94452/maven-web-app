@@ -1,53 +1,29 @@
 pipeline {
     agent any
     
-    tools {
-        maven 'Maven 3.9.6'
+    tools{
+        maven 'Maven 3.9.9'
     }
-
-    environment {
-        IMAGE_NAME = "rakesh/mavenwebapp:${BUILD_NUMBER}"
-        DOCKER_TAG = "rakesh/mavenwebapp:latest"
-    }
-    
     stages {
-        stage('Clone Repository') {
+        stage('clone') {
             steps {
-                git branch: 'main', url: 'https://github.com/rakesh94452/maven-web-app.git'
+              git branch: 'main', url: 'https://github.com/rakesh94452/maven-web-app.git'
             }
         }
-        
-        stage('Maven Build') {
-            steps {
-                sh 'mvn clean package -DskipTests'
+        stage('build'){
+            steps{
+                 sh 'mvn clean package'
             }
         }
-        
-        stage('Docker Build') {
+        stage('docker image'){
             steps {
-                sh "docker build -t ${IMAGE_NAME} ."
-                sh "docker tag ${IMAGE_NAME} ${DOCKER_TAG}"
+                sh 'docker build -t rakesh/mavenwebapp .'
             }
         }
-        
-        stage('K8s Deployment') {
-            steps {
-                sh 'kubectl apply -f maven-web-app-deploy.yml'
-                sh 'kubectl get pods'
-                sh 'kubectl get svc'
+        stage('k8s deploy'){
+            steps{
+               sh 'kubectl apply -f maven-wed-app-deploy-yml.yml'
             }
-        }
-    }
-    
-    post {
-        always {
-            sh 'docker system prune -f'
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
         }
     }
 }
