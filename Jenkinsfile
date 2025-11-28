@@ -22,9 +22,10 @@ pipeline {
         }
         stage('k8s deploy'){
             steps{
-               sh 'kubectl apply -f maven-wed-app-deploy-yml.yml'
+               sh 'kubectl apply -f maven-wed-app-deploy.yml'
             }
         }
     }
 }
+
 
