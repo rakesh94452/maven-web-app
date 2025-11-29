@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mavenwebappdeployment
+  labels:
+    app: mavenwebapp
 spec:
   replicas: 2
   strategy:
@@ -15,29 +17,43 @@ spec:
         app: mavenwebapp
     spec:
       containers:
-      - name: mavenwebappcontainer
-        image: rakesh/maven-web-app:v3
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8080
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 8080
-          initialDelaySeconds: 15
-          periodSeconds: 5
+        - name: mavenwebappcontainer
+          image: rakesh/maven-web-app:v3
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+
+          # Readiness probe (checks before putting pod in service)
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # Liveness probe (checks if container is healthy)
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: mavenwebappsvc
+  labels:
+    app: mavenwebapp
 spec:
-  type: LoadBalancer
   selector:
     app: mavenwebapp
+  type: LoadBalancer
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8080
-
-
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
